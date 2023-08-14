@@ -8,7 +8,8 @@ import csv
 # Настройки
 DELAY_MIN = 30                              # Рандомная задержка между транзакциями ОТ
 DELAY_MAX = 100                             # Рандомная задержка между транзакциями ДО
-ACCOUNT_DELAY = random.randint(600, 900)    # Задержка между разными кошельками
+ACCOUNT_DELAY_MIN = 600                     # Задержка между разными кошельками ОТ
+ACCOUNT_DELAY_MAX = 900                     # Задержка между разными кошельками ДО
 REPEAT_MINTS_MIN = 3                        # Минимальное количество повторений минта на одном аккаунте
 REPEAT_MINTS_MAX = 9                        # Максимальное количество повторений минта на одном аккаунте
 PROXIES = True                              # Использовать прокси или нет (Для СНГ стран прокси обязательно юзать, иначе РПС блок. Можно 1 штуку на все акки)
@@ -51,7 +52,7 @@ if PROXIES:
         "https": f"http://{credentials}@{ip_port}",
     }
 
-# Инициализация подключения к Zora
+# Инициализация подключения к Ethereum
 w3 = Web3(HTTPProvider('https://rpc.zora.energy', session=session))
 
 if not w3.is_connected():
@@ -70,7 +71,7 @@ for index, private_key in enumerate(private_keys, 1):
     try:
         sender_address = w3.eth.account.from_key(private_key).address
 
-        # Выбор случайного контракта
+        # Выбор случайного контракта и количества
         contract_and_quantity = random.choice(CONTRACTS_AND_QUANTITIES)
         contract_address = contract_and_quantity["address"]
         quantity_to_mint = contract_and_quantity["quantity"]
@@ -82,6 +83,7 @@ for index, private_key in enumerate(private_keys, 1):
 
         # Выбор случайного количества повторных транзакций минта
         repeat_mints = random.randint(REPEAT_MINTS_MIN, REPEAT_MINTS_MAX)
+        ACCOUNT_DELAY = random.randint(ACCOUNT_DELAY_MIN, ACCOUNT_DELAY_MAX)
         for repeat_index in range(repeat_mints):
             estimated_gas = w3.eth.estimate_gas({
                 'to': contract_address,
