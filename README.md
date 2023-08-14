@@ -1,8 +1,9 @@
 # Zora Mintfun
 
-Минт рандомной бесплатной NFT в сети Zora. Использую для набива транзакций.
-https://mint.fun/zora/0x53cb0B849491590CaB2cc44AF8c20e68e21fc36D
+Минт рандомной бесплатной NFT в сети Zora N. Используем для набива транзакций.
 https://mint.fun/zora/0x4de73D198598C3B4942E95657a12cBc399E4aDB5
+https://mint.fun/zora/0x53cb0B849491590CaB2cc44AF8c20e68e21fc36D
+https://mint.fun/zora/0xca5F4088c11B51c5D2B9FE5e5Bc11F1aff2C4dA7
 
 ## Основные возможности
 
