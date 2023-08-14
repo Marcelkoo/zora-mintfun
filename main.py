@@ -52,7 +52,7 @@ if PROXIES:
         "https": f"http://{credentials}@{ip_port}",
     }
 
-# Инициализация подключения к Ethereum
+# Инициализация подключения к Zora
 w3 = Web3(HTTPProvider('https://rpc.zora.energy', session=session))
 
 if not w3.is_connected():
@@ -71,7 +71,7 @@ for index, private_key in enumerate(private_keys, 1):
     try:
         sender_address = w3.eth.account.from_key(private_key).address
 
-        # Выбор случайного контракта и количества
+        # Выбор случайного контракта
         contract_and_quantity = random.choice(CONTRACTS_AND_QUANTITIES)
         contract_address = contract_and_quantity["address"]
         quantity_to_mint = contract_and_quantity["quantity"]
