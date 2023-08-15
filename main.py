@@ -19,8 +19,14 @@ SHUFFLE_WALLETS = True                      # Перемешать кошель�
 CONTRACTS_AND_QUANTITIES = [
     {"address": "0x4de73D198598C3B4942E95657a12cBc399E4aDB5", "quantity": 1},
     {"address": "0x53cb0B849491590CaB2cc44AF8c20e68e21fc36D", "quantity": 3},
-    {"address": "0xca5F4088c11B51c5D2B9FE5e5Bc11F1aff2C4dA7", "quantity": 2}
-
+    {"address": "0xca5F4088c11B51c5D2B9FE5e5Bc11F1aff2C4dA7", "quantity": 2},
+    {"address": "0x266b7E8Df0368Dd4006bE5469DD4EE13EA53d3a4", "quantity": 3},
+    {"address": "0xCc4FF6BB314055846e46490B966745E869546B4a", "quantity": 100},
+    {"address": "0x9eAE90902a68584E93a83D7638D3a95ac67FC446", "quantity": 3},
+    {"address": "0x4073a52A3fc328D489534Ab908347eC1FcB18f7f", "quantity": 3},
+    {"address": "0x12B93dA6865B035AE7151067C8d264Af2ae4be8E", "quantity": 10},
+    {"address": "0x266b7E8Df0368Dd4006bE5469DD4EE13EA53d3a4", "quantity": 3},
+    {"address": "0xC47ADb3e5dC59FC3B41d92205ABa356830b44a93", "quantity": 2}
 ]
 
 # Загрузка ABI контракта
