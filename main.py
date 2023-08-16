@@ -27,7 +27,8 @@ CONTRACTS_AND_QUANTITIES = [
     {"address": "0x12B93dA6865B035AE7151067C8d264Af2ae4be8E", "quantity": 10},
     {"address": "0x266b7E8Df0368Dd4006bE5469DD4EE13EA53d3a4", "quantity": 3},
     {"address": "0xC47ADb3e5dC59FC3B41d92205ABa356830b44a93", "quantity": 2},
-    {"address": "0xDcFB6cB9512E50dC54160cB98E5a00B3383F6A53", "quantity": 100}
+    {"address": "0xDcFB6cB9512E50dC54160cB98E5a00B3383F6A53", "quantity": 100},
+    {"address": "0x44799449edE47C4bB36B178D3bf666a6C6B90929", "quantity": 3}
 ]
 
 # Загрузка ABI контракта
