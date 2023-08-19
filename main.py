@@ -145,7 +145,7 @@ def create_excel_file(file_path):
         target_txns = random.randint(MIN_TARGET_TXNS, MAX_TARGET_TXNS)
         target_delay = random.randint(MIN_ACCOUNT_DELAY, MAX_ACCOUNT_DELAY)
         timestamp_1969 = "1969-01-01 00:00:00"
-        df = df.append({'Private_Key': pkey, 'Proxy': proxy, 'Target_Txns': target_txns, 'Time_Stamp': timestamp_1969, 'Acc_delay': target_delay, 'total_mint': 0},
+        df = df._append({'Private_Key': pkey, 'Proxy': proxy, 'Target_Txns': target_txns, 'Time_Stamp': timestamp_1969, 'Acc_delay': target_delay, 'total_mint': 0},
                        ignore_index=True)
 
     # Save the DataFrame to an Excel file
@@ -248,7 +248,7 @@ while True:
         # Randomly select a contract and its quantity
         contract_data = random.choice(CONTRACTS_AND_QUANTITIES)
 
-        repeat_mint = df.at[idx, 'target_txns']
+        repeat_mint = df.at[idx, 'Target_Txns']
         account_delay = df.at[idx, 'Acc_delay']
         total_mint = df.at[idx, 'total_mint']
         nugger = SetupGayLogger(f'Wallet {idx}')
@@ -266,7 +266,7 @@ while True:
         eligible_id_found = True
         sleep_delay = 100
 
-        status = mint_tokens(sender_address, contract_data["address"], contract_data["quantity"], private_key, proxy)
+        status = mint_tokens(nugger, sender_address, contract_data["address"], contract_data["quantity"], private_key, proxy)
 
         if status:
             df.at[idx, 'total_mint'] += 1
