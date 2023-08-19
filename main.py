@@ -1,151 +1,290 @@
 import os
 import random
 import time
-import csv
+from datetime import datetime
+import pandas as pd
 import requests
 from web3 import Web3, HTTPProvider
-from openpyxl import Workbook, load_workbook
 import json
+import colorlog
+import logging
+from colorama import init, Fore
 
-# 1. Конфигурационные параметры
-MIN_TRANSACTION_DELAY = 30
-MAX_TRANSACTION_DELAY = 100
-MIN_ACCOUNT_DELAY = 600
-MAX_ACCOUNT_DELAY = 900
-MIN_TARGET_TXNS = 5
-MAX_TARGET_TXNS = 15
-USE_PROXIES = True
-SHUFFLE_ACCOUNTS = True
-EXCEL_PATH = "data.xlsx"
+with open('config.json', 'r') as f:
+    data = json.load(f)
 
-CONTRACTS_AND_QUANTITIES = [
-    {"address": "0x4de73D198598C3B4942E95657a12cBc399E4aDB5", "quantity": 1},
-    {"address": "0x53cb0B849491590CaB2cc44AF8c20e68e21fc36D", "quantity": 3},
-    {"address": "0xca5F4088c11B51c5D2B9FE5e5Bc11F1aff2C4dA7", "quantity": 2},
-    {"address": "0x266b7E8Df0368Dd4006bE5469DD4EE13EA53d3a4", "quantity": 3},
-    {"address": "0xCc4FF6BB314055846e46490B966745E869546B4a", "quantity": 100},
-    {"address": "0x9eAE90902a68584E93a83D7638D3a95ac67FC446", "quantity": 3},
-    {"address": "0x4073a52A3fc328D489534Ab908347eC1FcB18f7f", "quantity": 3},
-    {"address": "0x12B93dA6865B035AE7151067C8d264Af2ae4be8E", "quantity": 10},
-    {"address": "0x266b7E8Df0368Dd4006bE5469DD4EE13EA53d3a4", "quantity": 3},
-    {"address": "0xC47ADb3e5dC59FC3B41d92205ABa356830b44a93", "quantity": 2},
-    {"address": "0xDcFB6cB9512E50dC54160cB98E5a00B3383F6A53", "quantity": 100}
-]
+# Extract configuration and contracts
+config = data['config']
+CONTRACTS_AND_QUANTITIES = data['contracts']
 
-# 2. Вспомогательные функции
-def create_excel_file(file_path, private_keys):
-    wb = Workbook()
-    ws = wb.active
+MIN_TRANSACTION_DELAY = config['MIN_TRANSACTION_DELAY']
+MAX_TRANSACTION_DELAY = config['MAX_TRANSACTION_DELAY']
+MIN_ACCOUNT_DELAY = config['MIN_ACCOUNT_DELAY']
+MAX_ACCOUNT_DELAY = config['MAX_ACCOUNT_DELAY']
+MIN_TARGET_TXNS = config['MIN_TARGET_TXNS']
+MAX_TARGET_TXNS = config['MAX_TARGET_TXNS']
+SHUFFLE_ACCOUNTS = config['SHUFFLE_ACCOUNTS']
+EXCEL_PATH = config['EXCEL_PATH']
+
+# Helper Functions
+def SetupGayLogger(logger_name):
+    """
+    SetupGayLogger initializes a colorful logging mechanism, presenting each log message in a beautiful
+    rainbow sequence. The function accepts a logger name and returns a logger instance that can be used
+    for logging messages.
+
+    Parameters:
+    - logger_name (str): A name for the logger.
+
+    Returns:
+    - logger (Logger): A configured logger instance.
+    """
+
+    # Initialize the colorama library, which provides an interface for producing colored terminal text.
+    init()
+
+    def rainbow_colorize(text):
+        """
+        Transforms a given text into a sequence of rainbow colors.
+
+        Parameters:
+        - text (str): The text to be colorized.
+
+        Returns:
+        - str: The rainbow colorized text.
+        """
+        # Define the sequence of colors to be used.
+        colors = [Fore.RED, Fore.YELLOW, Fore.GREEN, Fore.CYAN, Fore.BLUE, Fore.MAGENTA]
+        colored_message = ''
+
+        # For each character in the text, assign a color from the sequence.
+        for index, char in enumerate(text):
+            color = colors[index % len(colors)]
+            colored_message += color + char
+
+        # Return the colorized text and reset the color.
+        return colored_message
+
+    class RainbowColoredFormatter(colorlog.ColoredFormatter):
+        """
+        Custom logging formatter class that extends the ColoredFormatter from the colorlog library.
+        This formatter first applies rainbow colorization to the entire log message before using the
+        standard level-based coloring.
+        """
+
+        def format(self, record):
+            """
+            Format the log record. Overridden from the base class to apply rainbow colorization.
+
+            Parameters:
+            - record (LogRecord): The log record.
+
+            Returns:
+            - str: The formatted log message.
+            """
+            # First rainbow colorize the entire message.
+            message = super().format(record)
+            rainbow_message = rainbow_colorize(message)
+            return rainbow_message
+
+    # Obtain an instance of a logger for the provided name.
+    logger = colorlog.getLogger(logger_name)
+
+    # Ensure that if there are any pre-existing handlers attached to this logger, they are removed.
+    # This prevents duplicate messages from being displayed.
+    while logger.hasHandlers():
+        logger.removeHandler(logger.handlers[0])
+
+    # Create a stream handler to output log messages to the console.
+    handler = colorlog.StreamHandler()
+
+    # Assign the custom formatter to the handler.
+    handler.setFormatter(
+        RainbowColoredFormatter(
+            "|%(log_color)s%(asctime)s| - Profile [%(name)s] - %(levelname)s - %(message)s",
+            datefmt=None,
+            reset=False,
+            log_colors={
+                'DEBUG': 'cyan',
+                'INFO': 'green',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
+                'CRITICAL': 'red,bg_white',
+            },
+            secondary_log_colors={},
+            style='%'
+        )
+    )
+
+    # Attach the handler to the logger.
+    logger.addHandler(handler)
+
+    # Set the minimum logging level to DEBUG. This means messages of level DEBUG and above will be processed.
+    logger.setLevel(logging.DEBUG)
+
+    return logger
+def create_excel_file(file_path):
+    """
+    Create a new Excel file with columns for private keys, proxies, target transaction numbers, and timestamp.
+    """
+    df = pd.DataFrame(columns=['Private_Key', 'Proxy', 'Target_Txns', 'Time_Stamp', 'Acc_delay', 'total_mint'])
+
+    # Load private keys from the file
+    with open('pkey.txt', 'r') as f:
+        private_keys = [line.strip() for line in f.readlines()]
 
     proxies_list = []
-    if USE_PROXIES:
-        with open('proxies.txt', 'r') as f:
-            proxies_list = [line.strip() for line in f.readlines()]
-            proxies_list.extend(proxies_list * (len(private_keys) // len(proxies_list)))
+    # Load proxies from file if required
 
-    for idx, (pkey, proxy) in enumerate(zip(private_keys, proxies_list), 2):
-        ws.cell(row=idx, column=1, value=pkey)
-        ws.cell(row=idx, column=2, value=proxy)
+    with open('proxies.txt', 'r') as f:
+        proxies_list = [line.strip() for line in f.readlines()]
+        proxies_list.extend(proxies_list * (len(private_keys) // len(proxies_list)))
+
+    # Populate Excel rows with private keys, proxies, random target transactions, and the 1969 timestamp
+    for pkey, proxy in zip(private_keys, proxies_list):
         target_txns = random.randint(MIN_TARGET_TXNS, MAX_TARGET_TXNS)
-        ws.cell(row=idx, column=3, value=target_txns)
+        target_delay = random.randint(MIN_ACCOUNT_DELAY, MAX_ACCOUNT_DELAY)
+        timestamp_1969 = "1969-01-01 00:00:00"
+        df = df.append({'Private_Key': pkey, 'Proxy': proxy, 'Target_Txns': target_txns, 'Time_Stamp': timestamp_1969, 'Acc_delay': target_delay, 'total_mint': 0},
+                       ignore_index=True)
 
-    wb.save(file_path)
+    # Save the DataFrame to an Excel file
+    df.to_excel(file_path, index=False)
+def mint_tokens(logger, sender_address, contract_address, quantity, private_key, proxy=None):
+    """
+    Mint tokens using the provided contract address, quantity, and private key.
+    Optionally, use a proxy for the transaction.
+    """
+    try:
+        # Set up the session and optionally the proxy
+        session = requests.Session()
+        if proxy:
+            credentials, ip_port = proxy.split('@')
+            session.proxies = {
+                "http": f"http://{credentials}@{ip_port}",
+                "https": f"http://{credentials}@{ip_port}",
+            }
 
+        # Set the web3 provider with the current session
+        w3.provider = HTTPProvider('https://rpc.zora.energy', session=session)
+        contract_address = w3.to_checksum_address(contract_address)
+        # Load the contract and prepare the transaction data
+        contract = w3.eth.contract(address=contract_address, abi=abi)
+        transaction_data = contract.functions.mint(quantity)._encode_transaction_data()
 
-def load_excel_data(file_path, private_keys):
-    if not os.path.exists(file_path):
-        create_excel_file(file_path, private_keys)
+        # Create and send the transaction
+        txn_params = {
+            'to': contract_address,
+            'from': sender_address,
+            'data': transaction_data
+        }
 
-    wb = load_workbook(file_path)
-    ws = wb.active
+        # Round to 6 digits after the decimal
+        rounded_value = round(random.uniform(0.005, 0.05), 6)
 
-    private_keys = [row[0].value for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=1)]
-    proxies_list = [row[1].value for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=2, max_col=2)]
+        estimated_gas = w3.eth.estimate_gas(txn_params)
+        transaction = {
+            'to': contract_address,
+            'value': 0,
+            'gas': estimated_gas,
+            'maxPriorityFeePerGas': int(w3.to_wei(rounded_value, 'gwei')),
+            'maxFeePerGas': int(w3.to_wei(rounded_value, 'gwei')),
+            'nonce': w3.eth.get_transaction_count(sender_address),
+            'data': transaction_data,
+            'chainId': 7777777
+        }
+        signed_txn = w3.eth.account.sign_transaction(transaction, private_key)
+        txn_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        receipt = w3.eth.wait_for_transaction_receipt(txn_hash)
 
-    return private_keys, proxies_list
+        # Record transaction details in CSV
+        if receipt['status'] == 1:
+            logger.info(f"Transaction successfully completed: https://explorer.zora.energy/tx/{txn_hash.hex()}")
+            return 1
+        elif receipt['status'] == 0:
+            logger.warning(f"Transaction was unsuccessful: https://explorer.zora.energy/tx/{txn_hash.hex()}")
+            return 0
 
+    except Exception as e:
+        logger.error(f"Error processing wallet {sender_address}: {e}")
+        return 0
+def get_time_difference_in_hours(idx, df):
+    time_difference = datetime.now() - datetime.strptime(df.at[idx, 'Time_Stamp'], "%Y-%m-%d %H:%M:%S")
+    return round(time_difference.total_seconds() / 3600, 1)
 
-# 3. Основная логика
-private_keys = []  # Этот список нужно определить или загрузить где-то ранее в коде
-private_keys, proxies_list = load_excel_data(EXCEL_PATH, private_keys)
+# Main Logic
+if not os.path.exists(EXCEL_PATH):
+    create_excel_file(EXCEL_PATH)
 
+df = pd.read_excel(EXCEL_PATH)
+
+private_keys = df['Private_Key'].tolist()
+proxies_list = df['Proxy'].tolist()
+
+# Optionally shuffle the accounts for randomness
 if SHUFFLE_ACCOUNTS:
     combined = list(zip(private_keys, proxies_list))
     random.shuffle(combined)
     private_keys, proxies_list = zip(*combined)
 
+# Connect to the Ethereum RPC node
 w3 = Web3(HTTPProvider('https://rpc.zora.energy'))
 
+# Check if the connection is successful
 if not w3.is_connected():
     print("Not connected to RPC")
     exit(1)
 
-print("Connected to RPC")
-
+# Load the ABI for the contract
 with open('abi.json', 'r') as f:
     abi = json.load(f)
 
-
-for idx, (private_key, proxy) in enumerate(zip(private_keys, proxies_list), 1):
-    session = requests.Session()
-    if USE_PROXIES:
-        credentials, ip_port = proxy.split('@')
-        session.proxies = {
-            "http": f"http://{credentials}@{ip_port}",
-            "https": f"http://{credentials}@{ip_port}",
-        }
-    w3.provider = HTTPProvider('https://rpc.zora.energy', session=session)
-    sender_address = w3.eth.account.from_key(private_key).address
-
-    try:
+# Infinite loop to continuously mint for eligible accounts.
+while True:
+    eligible_id_found = False
+    sleep_delay = 100
+    # Process each private key and associated proxy
+    for idx, (private_key, proxy) in enumerate(zip(private_keys, proxies_list), 0):
+        # Randomly select a contract and its quantity
         contract_data = random.choice(CONTRACTS_AND_QUANTITIES)
-        contract = w3.eth.contract(address=contract_data["address"],
-                                   abi=abi)
-        transaction_data = contract.functions.mint(contract_data["quantity"])._encode_transaction_data()
-        repeat_mints = random.randint(MIN_TARGET_TXNS, MAX_TARGET_TXNS)
-        account_delay = random.randint(MIN_ACCOUNT_DELAY, MAX_ACCOUNT_DELAY)
 
-        for _ in range(repeat_mints):
-            txn_params = {
-                'to': contract_data["address"],
-                'from': sender_address,
-                'data': transaction_data
-            }
-            estimated_gas = w3.eth.estimate_gas(txn_params)
-            transaction = {
-                'to': contract_data["address"],
-                'value': 0,
-                'gas': estimated_gas,
-                'maxPriorityFeePerGas': int(w3.to_wei('0.0005', 'gwei')),
-                'maxFeePerGas': int(w3.to_wei('0.0005', 'gwei')),
-                'nonce': w3.eth.get_transaction_count(sender_address),
-                'data': transaction_data,
-                'chainId': 7777777
-            }
-            signed_txn = w3.eth.account.sign_transaction(transaction, private_key)
-            txn_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
-            receipt = w3.eth.wait_for_transaction_receipt(txn_hash)
+        repeat_mint = df.at[idx, 'target_txns']
+        account_delay = df.at[idx, 'Acc_delay']
+        total_mint = df.at[idx, 'total_mint']
+        nugger = SetupGayLogger(f'Wallet {idx}')
 
-            status = "Successful" if receipt.status == 1 else "Failed"
-            with open('transactions.csv', 'a', newline='') as csvfile:
-                csvwriter = csv.writer(csvfile)
-                csvwriter.writerow([
-                    sender_address,
-                    contract_data["address"],
-                    f"https://explorer.zora.energy/tx/{txn_hash.hex()}",
-                    status
-                ])
+        diferents = get_time_difference_in_hours(idx, df)
+        sender_address = w3.eth.account.from_key(private_key).address
 
-            print(f"Wallet: {sender_address} [{idx}/{len(private_keys)}]")
-            if receipt.status == 1:
-                print(f"Transaction successfully completed: https://explorer.zora.energy/tx/{txn_hash.hex()}")
-            else:
-                print(f"Transaction was rejected: https://explorer.zora.energy/tx/{txn_hash.hex()}")
+        if total_mint >= repeat_mint:
+            nugger.info(f"Max transactions reached for wallet {sender_address}. Skipping...")
+            continue
+        if diferents < account_delay:
+            nugger.info(f"Current time different {diferents} less that target delay {account_delay} for wallet {sender_address}. Skipping...")
+            continue
 
-            delay = random.randint(MIN_TRANSACTION_DELAY, MAX_TRANSACTION_DELAY)
-            time.sleep(delay)
+        eligible_id_found = True
+        sleep_delay = 100
 
-        time.sleep(account_delay)
+        status = mint_tokens(sender_address, contract_data["address"], contract_data["quantity"], private_key, proxy)
 
-    except Exception as e:
-        print(f"Error processing wallet {sender_address}: {e}")
+        if status:
+            df.at[idx, 'total_mint'] += 1
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            df.at[idx, 'Time_Stamp'] = timestamp
+            df.to_excel(EXCEL_PATH, index=False)
+            nugger.warning(f"Updated timestamp for wallet {sender_address} to {timestamp}")
+        else:
+            continue
+        # Wait for a random time before the next transaction
+        delay = random.randint(MIN_TRANSACTION_DELAY, MAX_TRANSACTION_DELAY)
+        nugger.info(f"Waiting {delay} before next mint...")
+        time.sleep(delay)
+
+    if not eligible_id_found:
+        # If no eligible IDs were found in this iteration, increase the sleep delay
+        nugger_junior = SetupGayLogger("Mister_chocolate")
+        sleep_delay *= 3.14
+        nugger_junior.warning(f"No wallet available for mint, Chill {sleep_delay} seconds before next check...")
+        nugger_junior.warning("While waiting you should definitely subscribe to my chanel ")
+        time.sleep(sleep_delay)
