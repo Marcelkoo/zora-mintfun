@@ -290,7 +290,7 @@ while True:
     if not eligible_id_found:
         # If no eligible IDs were found in this iteration, increase the sleep delay
         nugger_junior = SetupGayLogger("Mister_chocolate")
-        sleep_delay *= 3.14
+        sleep_delay = sleep_delay * 3.14
         nugger_junior.warning(f"No wallet available for mint, Chill {sleep_delay} seconds before next check...")
         nugger_junior.warning("While waiting you should definitely subscribe to my chanel | https://t.me/CryptoBub_ble")
         time.sleep(sleep_delay)
