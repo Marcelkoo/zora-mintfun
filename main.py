@@ -197,13 +197,16 @@ def mint_tokens(logger, sender_address, contract_address, quantity, private_key,
         txn_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
         receipt = w3.eth.wait_for_transaction_receipt(txn_hash)
 
-        # Record transaction details in CSV
         if receipt['status'] == 1:
             logger.info(f"Transaction successfully completed:")
             logger.info(f"https://explorer.zora.energy/tx/{txn_hash.hex()}")
+            with open("successful_tx.txt", "a") as f:
+                f.write(f"Address {sender_address} | {txn_hash.hex()}\n")
             return 1
         elif receipt['status'] == 0:
             logger.warning(f"Transaction was unsuccessful: https://explorer.zora.energy/tx/{txn_hash.hex()}")
+            with open("failed_tx.txt", "a") as f:
+                f.write(f"Address {sender_address} | {txn_hash.hex()}\n")
             return 0
 
     except Exception as e:
@@ -231,11 +234,6 @@ if SHUFFLE_ACCOUNTS:
 # Connect to the Ethereum RPC node
 w3 = Web3(HTTPProvider('https://rpc.zora.energy'))
 
-# Check if the connection is successful
-if not w3.is_connected():
-    print("Not connected to RPC")
-    exit(1)
-
 # Load the ABI for the contract
 with open('abi.json', 'r') as f:
     abi = json.load(f)
@@ -247,6 +245,8 @@ while True:
     # Process each private key and associated proxy
     all_indices = list(range(len(private_keys)))
     random.shuffle(all_indices)
+
+    print("Subscribe: https://t.me/CryptoBub_ble")
 
     for idx in all_indices:
         private_key = private_keys[idx]
@@ -284,7 +284,7 @@ while True:
             continue
         # Wait for a random time before the next transaction
         delay = random.randint(MIN_TRANSACTION_DELAY, MAX_TRANSACTION_DELAY)
-        nugger.info(f"Waiting {delay} before next mint...")
+        nugger.info(f"Waiting {delay} second before next mint...")
         time.sleep(delay)
 
     if not eligible_id_found:
@@ -292,5 +292,5 @@ while True:
         nugger_junior = SetupGayLogger("Mister_chocolate")
         sleep_delay *= 3.14
         nugger_junior.warning(f"No wallet available for mint, Chill {sleep_delay} seconds before next check...")
-        nugger_junior.warning("While waiting you should definitely subscribe to my chanel ")
+        nugger_junior.warning("While waiting you should definitely subscribe to my chanel | https://t.me/CryptoBub_ble")
         time.sleep(sleep_delay)
