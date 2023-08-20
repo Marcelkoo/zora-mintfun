@@ -101,7 +101,7 @@ def SetupGayLogger(logger_name):
     # Assign the custom formatter to the handler.
     handler.setFormatter(
         RainbowColoredFormatter(
-            "|%(log_color)s%(asctime)s| - Profile [%(name)s] - %(levelname)s - %(message)s",
+            "|%(log_color)s%(asctime)s| - [%(name)s] - %(levelname)s - %(message)s",
             datefmt=None,
             reset=False,
             log_colors={
@@ -199,7 +199,8 @@ def mint_tokens(logger, sender_address, contract_address, quantity, private_key,
 
         # Record transaction details in CSV
         if receipt['status'] == 1:
-            logger.info(f"Transaction successfully completed: https://explorer.zora.energy/tx/{txn_hash.hex()}")
+            logger.info(f"Transaction successfully completed:")
+            logger.info(f"https://explorer.zora.energy/tx/{txn_hash.hex()}")
             return 1
         elif receipt['status'] == 0:
             logger.warning(f"Transaction was unsuccessful: https://explorer.zora.energy/tx/{txn_hash.hex()}")
@@ -244,7 +245,12 @@ while True:
     eligible_id_found = False
     sleep_delay = 100
     # Process each private key and associated proxy
-    for idx, (private_key, proxy) in enumerate(zip(private_keys, proxies_list), 0):
+    all_indices = list(range(len(private_keys)))
+    random.shuffle(all_indices)
+
+    for idx in all_indices:
+        private_key = private_keys[idx]
+        proxy = proxies_list[idx]
         # Randomly select a contract and its quantity
         contract_data = random.choice(CONTRACTS_AND_QUANTITIES)
 
@@ -260,7 +266,7 @@ while True:
             nugger.info(f"Max transactions reached for wallet {sender_address}. Skipping...")
             continue
         if diferents < account_delay:
-            nugger.info(f"Current time different {diferents} less that target delay {account_delay} for wallet {sender_address}. Skipping...")
+            nugger.info(f"Wallet {sender_address} time different {diferents}h - less that target delay {account_delay}h. Skipping...")
             continue
 
         eligible_id_found = True
