@@ -1,5 +1,5 @@
 
-# Zora-free-mint script
+# Zora-free-mint script created by [BBC™](https://t.me/CryptoBub_ble) 
 
 ## Overview
 
@@ -51,7 +51,7 @@ pip install pandas requests web3 colorlog logging colorama
 1. Populate the `pkey.txt` and `proxies.txt` files.
 2. Adjust the configurations in `config.json` as needed.
 3. Run the script. It will automatically mint tokens using the provided accounts, adhering to each account's delay and target transaction count.
-
+4. You need to be subscribe for 
 ## Security Considerations
 
 It's crucial to handle private keys with care. Once the Excel file with account details has been generated, it's recommended to delete the `pkey.txt` file to safeguard the private keys.
