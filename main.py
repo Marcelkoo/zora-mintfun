@@ -88,8 +88,8 @@ def check_file_exists():
         df = pd.read_csv('transactions.csv', encoding='utf-8-sig')
     return df
 
-
 def process_transactions(abi, private_keys, proxies_list, w3):
+    df = check_file_exists()
     # Обработка каждого приватного ключа
     for index, private_key in enumerate(private_keys, 1):
         try:
@@ -185,5 +185,4 @@ if __name__ == "__main__":
     abi, private_keys, proxies_list = load_files()
     session = initialize_session(proxies_list)
     w3 = initialize_web3(session)
-    df = check_file_exists()
     process_transactions(abi, private_keys, proxies_list, w3)
