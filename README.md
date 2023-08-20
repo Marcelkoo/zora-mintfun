@@ -19,6 +19,7 @@ Use this collection as a mint-poll:
 - **Automated Minting**: Continuously mints tokens using the provided private keys.
 - **Account-specific Configurations**: Each account has its own time delay and target transaction count.
 - **Proxy Support**: Utilizes proxies to bypass geographical RPC restrictions, especially relevant for users in countries like Russia)
+- **Gas Optimization**: Use a special trick to decrease gas price by 30 times, down to `0.01-0.03$` per mint, make each gas setting unique to avoid detection.
 
 ## Configuration
 
