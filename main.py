@@ -225,11 +225,6 @@ df = pd.read_excel(EXCEL_PATH)
 private_keys = df['Private_Key'].tolist()
 proxies_list = df['Proxy'].tolist()
 
-# Optionally shuffle the accounts for randomness
-if SHUFFLE_ACCOUNTS:
-    combined = list(zip(private_keys, proxies_list))
-    random.shuffle(combined)
-    private_keys, proxies_list = zip(*combined)
 
 # Connect to the Ethereum RPC node
 w3 = Web3(HTTPProvider('https://rpc.zora.energy'))
@@ -242,9 +237,9 @@ with open('abi.json', 'r') as f:
 while True:
     eligible_id_found = False
     sleep_delay = 100
-    # Process each private key and associated proxy
     all_indices = list(range(len(private_keys)))
-    random.shuffle(all_indices)
+    if SHUFFLE_ACCOUNTS:
+        random.shuffle(all_indices)
 
     print("Subscribe: https://t.me/CryptoBub_ble")
 
