@@ -232,11 +232,10 @@ w3 = Web3(HTTPProvider('https://rpc.zora.energy'))
 # Load the ABI for the contract
 with open('abi.json', 'r') as f:
     abi = json.load(f)
-
+sleep_delay = 15
 # Infinite loop to continuously mint for eligible accounts.
 while True:
     eligible_id_found = False
-    sleep_delay = 100
     all_indices = list(range(len(private_keys)))
     if SHUFFLE_ACCOUNTS:
         random.shuffle(all_indices)
@@ -265,7 +264,7 @@ while True:
             continue
 
         eligible_id_found = True
-        sleep_delay = 100
+        sleep_delay = 15
 
         status = mint_tokens(nugger, sender_address, contract_data["address"], contract_data["quantity"], private_key, proxy)
 
