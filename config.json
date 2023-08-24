@@ -41,6 +41,8 @@
     {"address": "0x93BCe2fF7CF7cFc722F70F8a5A93C2849C5eDEEF", "quantity": 2},
     {"address": "0x6BF820b6EF66B9946d078679a50DcDF2BF2e033c", "quantity": 4},
     {"address": "0x438F8f41801d470d0b7551F4d01853e7ca1fd0D8", "quantity": 5},
-    {"address": "0x300Ee523E8b95B3B4DB763089505F525a2d61721", "quantity": 3}
+    {"address": "0x300Ee523E8b95B3B4DB763089505F525a2d61721", "quantity": 3},
+    {"address": "0xb3d0bA3c295FdB0918Fe4BcDE04f62f36E60F50c", "quantity": 10},
+    {"address": "0xdB123EeDcFE960a03310D3A26f4A28D26627dcfe", "quantity": 5}
   ]
 }

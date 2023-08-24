@@ -14,7 +14,8 @@ Use this collection as a mint-poll:
 [Zoggles](https://mint.fun/zora/0x8974B96dA5886Ed636962F66a6456DC39118A140) - [sqr(16)](https://mint.fun/zora/0xbC2cA61440fAF65a9868295Efa5d5D87c55B9529) - [ZORA NFT CRYSTAL](https://mint.fun/zora/0xb096832A6ccD9053fe7a0EF075191Fe342D1AB75) -
 [Zorbee](https://mint.fun/zora/0x8f1B6776963bFcaa26f4e2a41289cFc3F50eD554) - [DriftBottleSeeds](https://mint.fun/zora/0xd46760C832960eEBd81391aC5DC8502A778B24Ec) - [TEXT](https://mint.fun/zora/0xA46aE6ffa6D987eeAF704E8ff6268Fc8D8166e1c) -
 [Dragon Zorb](https://mint.fun/zora/0x93BCe2fF7CF7cFc722F70F8a5A93C2849C5eDEEF) - [Opepen Rug Edition](https://mint.fun/zora/0x6BF820b6EF66B9946d078679a50DcDF2BF2e033c) - [Web3 Flower](https://mint.fun/zora/0x438F8f41801d470d0b7551F4d01853e7ca1fd0D8) -
-[Witchcraft](https://mint.fun/zora/0x300Ee523E8b95B3B4DB763089505F525a2d61721)
+[Witchcraft](https://mint.fun/zora/0x300Ee523E8b95B3B4DB763089505F525a2d61721) - [Sonic Zorb](https://mint.fun/zora/0xb3d0bA3c295FdB0918Fe4BcDE04f62f36E60F50c) - [Web3 PunkGirl](https://mint.fun/zora/0xdB123EeDcFE960a03310D3A26f4A28D26627dcfe)
+
 
 ## Features
 
